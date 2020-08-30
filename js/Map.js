@@ -43,4 +43,25 @@ class Map {
         let tile = this.tileLayer[options.id] = new Tile(options);
         tile.onAdd(this);
     }
+
+    /** 经纬度转换屏幕坐标*/
+    lonlat2pixls (lonlat) {
+        let {center, zoom, project, resolutions, size} = this;
+        let projectCenter = project.project(center),
+            projectLonlat = project.project(lonlat),
+            resolution = resolutions[zoom];
+        //1 计算目标点和地图中心点地图单位（默认米）的差值
+        let dMeter = projectLonlat.sub(projectCenter.x, projectCenter.y);
+        //2 计算目标点和地图中心点像素差值
+        let dPixel = dMeter.divide(resolution, -resolution);
+        //3 计算地图中心点屏幕坐标
+        let centerPixel = size.divide(2, 2);
+        //4 计算目标经纬度屏幕坐标
+        let pixel = dPixel.add(centerPixel.x, centerPixel.y);
+        return pixel;
+    }
+
+    addLayer(layer) {
+        layer.onAdd(this);
+    }
 }

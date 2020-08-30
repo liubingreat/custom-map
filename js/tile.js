@@ -1,10 +1,12 @@
-class Tile{
+class Tile extends Layer{
     constructor(options) {
         options = Object.assign({tileSize: 256, dpi: 96}, options);
+        super(options);
         this.tileSize = options.tileSize;
         this.dpi = options.dpi;
         this.origin = new Point(-20037508.342789244, 20037508.342789244);
         this.url = options.url;
+        this.type = "tile";
     }
 
     onAdd(map) {
@@ -35,6 +37,7 @@ class Tile{
         let halfTileCount = tileCount.divide(2, 2);
 
         //4 计算瓦片屏幕坐标
+
         for(let i = 0, xLen = tileCount.x; i < xLen; i++) {
             for(let j = 0; j < tileCount.y; j++) {
                 let coords = centerTileCoords.sub(halfTileCount.x, halfTileCount.y).add(i, j).floor();
