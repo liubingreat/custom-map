@@ -1,6 +1,7 @@
-class Map {
+class Map extends Event{
     //构造方法
     constructor(options) {
+        super(options);
         options = Object.assign({id: "map", center: new LonLat(0, 0), zoom: 0}, options)
         this.id = options.id;
         this.container = document.querySelector(`#${this.id}`);
@@ -17,11 +18,15 @@ class Map {
             ];
         this.tileLayer = {};
         this.mapPane = document.createElement("div");
+        this.mapPane.style.transform = "translate(0,0)";
         this.mapPane.className = "map-pane";
         this.container.appendChild(this.mapPane);
         this.mapTilePane = document.createElement("div");
         this.mapTilePane.className = "map-tile-pane";
         this.mapPane.appendChild(this.mapTilePane);
+        this.mapRenderPane = document.createElement("div");
+        this.mapRenderPane.className = "map-canvas-pane";
+        this.mapPane.appendChild(this.mapRenderPane);
         this.des = document.createElement("div");
         this.container.appendChild(this.des);
         this.des.className = "map-des";
@@ -30,13 +35,23 @@ class Map {
             this.container.clientWidth,
             this.container.clientHeight
         );
+        this.canvas = document.createElement("canvas");
+        // this.canvas.style.width =
         this.padding = 2;
         this.project = new Project();
+        this.addLayer(new CanvasRenderer());
+        this.mouseHandler = new MouseHandler(this);
+        this.mouseHandler.handlerDrag();
+        this.moveing = false;
     }
 
     setCenter(centerLonLat, zoom) {
         this.center = centerLonLat;
         this.zoom = zoom;
+    }
+
+    updateBounds() {
+
     }
 
     addTileLayer(options) {
@@ -59,6 +74,40 @@ class Map {
         //4 计算目标经纬度屏幕坐标
         let pixel = dPixel.add(centerPixel.x, centerPixel.y);
         return pixel;
+    }
+
+    movestart(event) {
+        this.fire("movestart", event);
+        this.moveing = true;
+    }
+
+    move(event) {
+        let {movementX, movementY} = event;
+        let {zoom, center, resolutions, project} = this;
+        let offset = this.getMapPos()
+        let offsetPoint = new Point(offset[0] + movementX, offset[1] + movementY).round();
+        this.mapPane.style["transform"] = `translate(${offsetPoint.x}px, ${offsetPoint.y}px)`;
+        let resolution = resolutions[zoom];
+        let centerMeter = project.project(center);
+        let lastCenterMeter = centerMeter.add(-movementX * resolution, movementY * resolution);
+        this.center = project.unproject(lastCenterMeter);
+        this.fire("move", event);
+    }
+
+    getMapPos() {
+        let translate = this.mapPane.style.transform;
+        let offsetArr = translate.substr(translate.indexOf("(") + 1, translate.indexOf(")")).split(",");
+        if(offsetArr.length == 1) {
+            offsetArr[1] = offsetArr[0];
+        }
+        return offsetArr.map(i => {
+            return parseInt(i);
+        });
+    }
+
+    moveend(event) {
+        this.moveing = false;
+        this.fire("moveend", event);
     }
 
     addLayer(layer) {

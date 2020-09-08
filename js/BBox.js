@@ -21,4 +21,11 @@ class BBox{
             buttom: rightButtom.y
         });
     }
+
+    contain(bbox) {
+        return this.left <= bbox.left &&
+            this.top >= bbox.top &&
+            this.right >= bbox.right &&
+            this.buttom <= bbox.buttom;
+    }
 }

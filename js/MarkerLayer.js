@@ -2,7 +2,6 @@ class MarkerLayer extends Layer{
     constructor(options) {
         options = Object.assign({zIndex: 100}, options);
         super(options);
-        this.type = "markerLayer";
         let pane = this.pane = document.createElement("div");
         pane.className = "map-marker-pane";
         pane.style["z-index"] = this.options.zIndex;

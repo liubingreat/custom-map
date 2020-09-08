@@ -42,6 +42,9 @@ html, body {
     -ms-transition: opacity 0.5s;
     -o-transition: opacity 0.5s;
     transition: opacity 0.5s;
+    pointer-events: none;
+
+
 }
 
 .map-des{
