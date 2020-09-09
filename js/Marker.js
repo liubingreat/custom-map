@@ -28,7 +28,7 @@ class Marker extends Layer{
 
     render() {
         let {map, markerBody, lonlat, iconWidth, iconHeight, offset} = this;
-        let pixel = map.lonlat2pixls(lonlat);
+        let pixel = map.lonlat2pixel(lonlat);
         let pos = pixel.sub(iconWidth / 2, iconHeight / 2).add(offset[0], offset[1]);
         markerBody.style.left = pos.x + "px";
         markerBody.style.top = pos.y + "px";

@@ -40,8 +40,12 @@ class Map extends Event{
         this.padding = 2;
         this.project = new Project();
         this.addLayer(new CanvasRenderer());
-        this.mouseHandler = new MouseHandler(this);
-        this.mouseHandler.handlerDrag();
+        this.mouseHandler = new MouseHandler(this.container);
+        this.mouseHandler.handlerDrag().handlerWheel();
+        this.mouseHandler.on("movestart", this.movestart, this);
+        this.mouseHandler.on("move", this.move, this);
+        this.mouseHandler.on("wheel", this.wheel, this);
+        this.mouseHandler.on("moveend", this.moveend, this);
         this.moveing = false;
     }
 
@@ -60,7 +64,7 @@ class Map extends Event{
     }
 
     /** 经纬度转换屏幕坐标*/
-    lonlat2pixls (lonlat) {
+    lonlat2pixel (lonlat) {
         let {center, zoom, project, resolutions, size} = this;
         let projectCenter = project.project(center),
             projectLonlat = project.project(lonlat),
@@ -74,6 +78,10 @@ class Map extends Event{
         //4 计算目标经纬度屏幕坐标
         let pixel = dPixel.add(centerPixel.x, centerPixel.y);
         return pixel;
+    }
+
+    pixel2LonLat(pixel) {
+
     }
 
     movestart(event) {
@@ -92,6 +100,27 @@ class Map extends Event{
         let lastCenterMeter = centerMeter.add(-movementX * resolution, movementY * resolution);
         this.center = project.unproject(lastCenterMeter);
         this.fire("move", event);
+    }
+
+    wheel(event) {
+        let {deltaY, layerX, layerY} = event;
+        this.wheelHandler && clearTimeout(this.wheelHandler);
+        this.wheelHandler = setTimeout(()=> {
+            if(deltaY > 0) {
+                this.zoom--;
+            }else {
+                this.zoom++;
+            }
+            this.zoomAround(layerX, layerY, this.zoom);
+        }, 350)
+    }
+
+    zoomAround(layerX, layerY, zoom) {
+        console.log(layerX, layerY, zoom)
+        let {size} = this;
+
+        let around2CenterOffsetPixel = size.divide(2, 2).sub(layerX, layerY);
+
     }
 
     getMapPos() {

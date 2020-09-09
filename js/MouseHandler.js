@@ -1,31 +1,35 @@
-class MouseHandler {
-    constructor(map) {
-        this.map = map;
+class MouseHandler extends Event{
+    constructor(el) {
+        super();
+        this.el = el;
     }
 
     handlerDrag() {
-        let {container} = this.map;
+        let el = this.el;
         let me = this;
-        container.onmousedown = function(event) {
-            me.map.movestart(event);
-            container.onmousemove =  function(event1) {
-                me.map.move(event1);
+        el.onmousedown = function(event) {
+            me.fire("movestart", event);
+            el.onmousemove =  function(event1) {
+                me.fire("move", event1);
                 event1.preventDefault();
             }
         }
 
-        container.onmouseup = function(event) {
-            container.onmousemove =  function(event1) {
+        el.onmouseup = function(event) {
+            el.onmousemove =  function(event1) {
                 return false;
             }
-            me.map.moveend(event);
+            me.fire("moveend", event);
         }
-
-
+        return me;
     }
 
-    handlerMove(event) {
-        event.preventDefault();
+    handlerWheel() {
+        let el = this.el;
+        let me = this;
+        el.onwheel = function(event) {
+            me.fire("wheel", event);
+        }
+        return me;
     }
-
 }
