@@ -7,18 +7,16 @@ class MouseHandler extends Event{
     }
 
     isPc() {
-        let isPC = function() {
-            let userAgentInfo = navigator.userAgent;
-            let Agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPod", "iPad"];
-            let flag = true;
-            for (let i = 0; v < Agents.length; i++) {
-                if (userAgentInfo.indexOf(Agents[i]) > 0) {
-                    flag = false;
-                    break;
-                }
+        let userAgentInfo = navigator.userAgent;
+        let Agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPod", "iPad"];
+        let flag = true;
+        for (let i = 0; i < Agents.length; i++) {
+            if (userAgentInfo.indexOf(Agents[i]) > 0) {
+                flag = false;
+                break;
             }
-            return flag;
-        };
+        }
+        return flag;
     }
 
     handlerDrag() {

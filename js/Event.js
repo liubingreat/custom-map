@@ -1,8 +1,6 @@
 //事件类
 class Event{
-
     //监听数组 存放事件处理器
-
     constructor() {
         this.listener = [];
     }

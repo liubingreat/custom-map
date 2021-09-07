@@ -24,13 +24,13 @@ class Marker extends Layer{
         this.markerBody.appendChild(img);
         this.markerLayer.pane.appendChild(this.markerBody);
         this.render();
+        this.map.on("zoomend", this.render, this);
     }
 
     render() {
         let {map, markerBody, lonlat, iconWidth, iconHeight, offset} = this;
         let pixel = map.lonlat2pixel(lonlat);
         let pos = pixel.sub(iconWidth / 2, iconHeight / 2).add(offset[0], offset[1]);
-        markerBody.style.left = pos.x + "px";
-        markerBody.style.top = pos.y + "px";
+        markerBody.style.transform = `translate(${pos.x }px, ${pos.y }px)`;
     }
 }

@@ -10,9 +10,23 @@ class Tile extends Layer{
 
     onAdd(map) {
         this.map = map;
-        this.tiles = {};
+        this.tiles = [];
         this.render();
         this.map.on("move", this.onUpdate, this);
+        this.map.on("zoomend", this.onZoomEnd, this);
+        this.map.on("zoomstart", this.onZoomStart, this);
+        this.map.on("zoom", this.onZoom, this);
+    }
+
+    init() {
+        let upPane = this.upPane = document.createElement("div");
+        upPane.style.left = 0;
+        upPane.style.top = 0;
+        let downPane = this.downPane = document.createElement("div");
+        downPane.style.left = 0;
+        downPane.style.top = 0;
+        map.mapTilePane.appendChild(downPane);
+        map.mapTilePane.appendChild(upPane);
     }
 
     render() {
@@ -26,9 +40,10 @@ class Tile extends Layer{
             project = map.project,
             tiles = this.tiles,
             tileSize = this.tileSize;
-        if(!Array.isArray(tiles[zoom])) {
-            tiles[zoom] = [];
-        }
+        // if(!Array.isArray(tiles[zoom])) {
+        //     tiles[zoom] = [];
+        // }
+
         //1 计算中心瓦片坐标
         let centerMeter = project.project(center);
         let meterPerTile = tileSize * resolution;
@@ -53,7 +68,7 @@ class Tile extends Layer{
                 let leftTopMeter = coords.multiply(meterPerTile, meterPerTile);
                 let rightBottomMeter = coords.add(1, 1).multiply(meterPerTile, meterPerTile);
                 let tileBounds = new BBox(leftTopMeter.x, leftTopMeter.y, rightBottomMeter.x, rightBottomMeter.y);
-                let cacheTile = tiles[zoom].find(item => {return item.coords === `${coords.x}_${coords.y}`});
+                let cacheTile = tiles/*[zoom]*/.find(item => {return item.coords === `${coords.x}_${coords.y}`});
                 if (cacheTile) {
                     continue;
                 }
@@ -67,11 +82,11 @@ class Tile extends Layer{
                 map.mapTilePane.appendChild(img);
                 let tilePx = coords.sub(centerTileCoords.x, centerTileCoords.y).multiply(tileSize, tileSize);
                 let centerTilePx = mapSize.divide(2, 2).sub(tileOffset.x, tileOffset.y);
-                let leftTop = tilePx.add(centerTilePx.x, centerTilePx.y).round();
-                leftTop = leftTop.sub(mapPos[0], mapPos[1])
+                let leftTop = tilePx.add(centerTilePx.x, centerTilePx.y);
+                leftTop = leftTop.sub(mapPos[0], mapPos[1]).round();
                 img.style.left = `${leftTop.x}px`;
                 img.style.top = `${leftTop.y}px`;
-                tiles[zoom].push({
+                tiles/*[zoom]*/.push({
                     img: img,
                     bounds: tileBounds,
                     leftTop: leftTop,
@@ -80,10 +95,10 @@ class Tile extends Layer{
             }
         }
 
-        for(let i = 0; i < tiles[zoom].length; i++) {
-            let tile = tiles[zoom][i];
+        for(let i = 0; i < tiles/*[zoom]*/.length; i++) {
+            let tile = tiles/*[zoom]*/[i];
             if(!layerBounds.contain(tile.bounds)) {
-                tiles[zoom].splice(i, 1);
+                tiles/*[zoom]*/.splice(i, 1);
                 i--;
                 map.mapTilePane.removeChild(tile.img);
             }
@@ -93,5 +108,30 @@ class Tile extends Layer{
 
     onUpdate (event) {
         this.render();
+    }
+
+    onZoomEnd() {
+        let {tiles, map} = this;
+        for(let i = 0; i < tiles.length; i++) {
+            let tile = tiles[i];
+            map.mapTilePane.removeChild(tile.img);
+        }
+        this.tiles = [];
+        this.render();
+    }
+
+    onZoomStart() {
+        this.lastZoom = this.map.getZoom();
+    }
+
+    onZoom() {
+        // this.zoom = this.map.getZoom();
+        // this.upPane.style["z-index"] = this.zoom;
+        // this.downPane.style["z-index"] = this.lastZoom;
+        // if(this.zoom > this.lastZoom) { //zoomIn
+        //     this.downPane.style["transform"] = "sacle(2)";
+        // }else {                         //zoomOut
+        //     this.downPane.style["transform"] = "sacle(0.5)";
+        // }
     }
 }

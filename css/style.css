@@ -65,4 +65,8 @@ html, body {
 
 .map-marker{
     position: absolute;
+    left: 0;
+    top: 0;
+    transition: transfrom 1s ease 1s;
+    pointer-events: none;
 }

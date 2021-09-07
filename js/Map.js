@@ -68,7 +68,8 @@ class Map extends Event{
         let {center, zoom, project, resolutions, size} = this;
         let projectCenter = project.project(center),
             projectLonlat = project.project(lonlat),
-            resolution = resolutions[zoom];
+            resolution = resolutions[zoom],
+            mapPos = this.getMapPos();
         //1 计算目标点和地图中心点地图单位（默认米）的差值
         let dMeter = projectLonlat.sub(projectCenter.x, projectCenter.y);
         //2 计算目标点和地图中心点像素差值
@@ -76,12 +77,29 @@ class Map extends Event{
         //3 计算地图中心点屏幕坐标
         let centerPixel = size.divide(2, 2);
         //4 计算目标经纬度屏幕坐标
-        let pixel = dPixel.add(centerPixel.x, centerPixel.y);
+        let pixel = dPixel.add(centerPixel.x, centerPixel.y).sub(mapPos[0], mapPos[1]);
         return pixel;
     }
 
     pixel2LonLat(pixel) {
+        let {center, size, resolutions, zoom, project} = this;
+        let resolution = resolutions[zoom],
+            halfSize = size.divide(2, 2),
+            offset = halfSize.sub(pixel.x, pixel.y),
+            centerMeter = project.project(center),
+            offsetMeter = offset.multiply(resolution, resolution),
+            meter = centerMeter.sub(offsetMeter.x, -offsetMeter.y);
+        return project.unproject(meter);
+    }
 
+    pixel2Meter(pixel) {
+        let {center, size, resolutions, zoom, project} = this;
+        let resolution = resolutions[zoom],
+            halfSize = size.divide(2, 2),
+            offset = halfSize.sub(pixel.x, pixel.y),
+            centerMeter = project.project(center),
+            offsetMeter = offset.multiply(resolution, resolution);
+        return  centerMeter.sub(offsetMeter.x, -offsetMeter.y);
     }
 
     movestart(event) {
@@ -92,7 +110,7 @@ class Map extends Event{
     move(event) {
         let {movementX, movementY} = event;
         let {zoom, center, resolutions, project} = this;
-        let offset = this.getMapPos()
+        let offset = this.getMapPos();
         let offsetPoint = new Point(offset[0] + movementX, offset[1] + movementY).round();
         this.mapPane.style["transform"] = `translate(${offsetPoint.x}px, ${offsetPoint.y}px)`;
         let resolution = resolutions[zoom];
@@ -105,21 +123,33 @@ class Map extends Event{
     wheel(event) {
         let {deltaY, layerX, layerY} = event;
         this.wheelHandler && clearTimeout(this.wheelHandler);
+        let meter = this.pixel2Meter({x:layerX, y:layerY});
+        this.fire("zoomstart");
         this.wheelHandler = setTimeout(()=> {
             if(deltaY > 0) {
                 this.zoom--;
             }else {
                 this.zoom++;
             }
-            this.zoomAround(layerX, layerY, this.zoom);
-        }, 350)
+            this.fire("zoom");
+            this.center = this.getNewCenter(meter, layerX, layerY, this.zoom);
+            this.fire("zoomend");
+        }, 150);
     }
 
-    zoomAround(layerX, layerY, zoom) {
-        console.log(layerX, layerY, zoom)
-        let {size} = this;
+    getNewCenter(meter, layerX, layerY, zoom) {
+        let {size, resolutions, project} = this;
+        let resolution = resolutions[zoom];
+        let offsetMeter = size.divide(2, 2).sub(layerX, layerY).multiply(resolution, resolution);
+        return project.unproject(meter.add(offsetMeter.x, -offsetMeter.y));
+    }
 
+    zoomAround(meter, zoom) {
+        let {size, resolutions} = this;
+        let resolution = resolutions[zoom];
         let around2CenterOffsetPixel = size.divide(2, 2).sub(layerX, layerY);
+        let meterw = this.pixel2Meter({x:layerX, y:layerY});
+
 
     }
 
@@ -141,5 +171,9 @@ class Map extends Event{
 
     addLayer(layer) {
         layer.onAdd(this);
+    }
+
+    getZoom() {
+        return this.zoom;
     }
 }
